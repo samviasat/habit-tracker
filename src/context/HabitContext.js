@@ -3,10 +3,25 @@ import { v4 as uuidv4 } from 'uuid';
 
 const HabitContext = createContext(null);
 
+// Define a list of visually distinct colors for habits
+const HABIT_COLORS = [
+  '#4CAF50', // Green
+  '#2196F3', // Blue
+  '#FFC107', // Amber
+  '#9C27B0', // Purple
+  '#F44336', // Red
+  '#FF9800', // Orange
+  '#00BCD4', // Cyan
+  '#E91E63', // Pink
+  '#3F51B5', // Indigo
+  '#009688', // Teal
+];
+
 export const HabitProvider = ({ children }) => {
   const [habits, setHabits] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState('month');
+  const [selectedHabit, setSelectedHabit] = useState(null);
 
   // Load habits from localStorage
   useEffect(() => {
@@ -22,7 +37,8 @@ export const HabitProvider = ({ children }) => {
           description: 'Stay hydrated throughout the day',
           goal: 1,
           streak: { current: 0, longest: 0 },
-          completions: {}
+          completions: {},
+          color: HABIT_COLORS[0]
         },
         {
           id: uuidv4(),
@@ -30,7 +46,8 @@ export const HabitProvider = ({ children }) => {
           description: 'Daily workout session',
           goal: 1,
           streak: { current: 0, longest: 0 },
-          completions: {}
+          completions: {},
+          color: HABIT_COLORS[1]
         },
         {
           id: uuidv4(),
@@ -38,7 +55,8 @@ export const HabitProvider = ({ children }) => {
           description: 'Daily reading time',
           goal: 1,
           streak: { current: 0, longest: 0 },
-          completions: {}
+          completions: {},
+          color: HABIT_COLORS[2]
         },
         {
           id: uuidv4(),
@@ -46,7 +64,8 @@ export const HabitProvider = ({ children }) => {
           description: 'Daily meditation practice',
           goal: 1,
           streak: { current: 0, longest: 0 },
-          completions: {}
+          completions: {},
+          color: HABIT_COLORS[3]
         }
       ];
       setHabits(sampleHabits);
@@ -66,7 +85,8 @@ export const HabitProvider = ({ children }) => {
       description,
       goal,
       streak: { current: 0, longest: 0 },
-      completions: {}
+      completions: {},
+      color: HABIT_COLORS[habits.length % HABIT_COLORS.length]
     };
     setHabits([...habits, newHabit]);
   };
@@ -121,12 +141,14 @@ export const HabitProvider = ({ children }) => {
       habits,
       currentDate,
       viewType,
+      selectedHabit,
       addHabit,
       updateHabit,
       deleteHabit,
       toggleCompletion,
       setCurrentDate,
-      setViewType
+      setViewType,
+      setSelectedHabit
     }}>
       {children}
     </HabitContext.Provider>

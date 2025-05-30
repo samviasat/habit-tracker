@@ -8,10 +8,15 @@ import { useHabits } from '../context/HabitContext';
 const CalendarView = ({ date, onDateChange }) => {
   const { habits } = useHabits();
   const month = format(date, 'MMMM yyyy');
+  const monthStart = startOfMonth(date);
   const days = eachDayOfInterval({
-    start: startOfMonth(date),
+    start: monthStart,
     end: endOfMonth(date)
   });
+
+  // Calculate empty cells for the start of the month
+  const startDayOfWeek = getDay(monthStart);
+  const emptyDays = Array(startDayOfWeek).fill(null);
 
   const handleDateChange = (newDate) => {
     onDateChange(newDate);
@@ -26,6 +31,8 @@ const CalendarView = ({ date, onDateChange }) => {
     if (completion === undefined) return 'future';
     return completion ? 'completed' : 'missed';
   };
+
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
     <Paper sx={{ p: 2 }}>
@@ -43,60 +50,92 @@ const CalendarView = ({ date, onDateChange }) => {
 
       <Grid container spacing={1}>
         {/* Weekdays header */}
-        {[...Array(7)].map((_, idx) => (
-          <Grid item xs={1.66} key={idx}>
-            <Typography align="center" variant="caption">
-              {format(new Date(2022, 0, idx + 1), 'EEE')}
+        {weekDays.map((day) => (
+          <Grid item xs={12/7} key={day}>
+            <Typography 
+              align="center" 
+              variant="subtitle2" 
+              sx={{ 
+                fontWeight: 'bold',
+                pb: 1
+              }}
+            >
+              {day}
             </Typography>
           </Grid>
         ))}
 
-        {/* Days grid */}
-        {days.map((day) => {
-          const dayNumber = format(day, 'd');
-          const dayIndex = getDay(day);
-          const dayClass = 'day';
+        {/* Empty cells for start of month */}
+        {emptyDays.map((_, index) => (
+          <Grid item xs={12/7} key={`empty-${index}`}>
+            <Paper
+              elevation={0}
+              sx={{
+                height: '100px',
+                bgcolor: 'grey.100',
+                opacity: 0.5
+              }}
+            />
+          </Grid>
+        ))}
 
-          return (
-            <Grid item xs={1.66} key={dayNumber}>
-              <Paper
-                elevation={3}
-                sx={{
-                  height: '100px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  '&.completed': {
-                    bgcolor: 'primary.light',
-                  },
-                  '&.missed': {
-                    bgcolor: 'error.light',
-                  },
-                  '&.today': {
-                    border: '2px solid',
-                    borderColor: 'primary.main',
-                  },
-                  '&.future': {
-                    bgcolor: 'grey.100',
-                  },
-                }}
-                className={dayClass}
-                onClick={() => {
-                  // Handle day click
-                }}
-              >
-                <Typography>{dayNumber}</Typography>
+        {/* Calendar days */}
+        {days.map((day) => (
+          <Grid item xs={12/7} key={format(day, 'yyyy-MM-dd')}>
+            <Paper
+              elevation={1}
+              sx={{
+                height: '100px',
+                p: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                },
+                '&.completed': {
+                  bgcolor: 'primary.light',
+                },
+                '&.missed': {
+                  bgcolor: 'error.light',
+                },
+                '&.today': {
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                },
+                '&.future': {
+                  bgcolor: 'background.paper',
+                }
+              }}
+              className={format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'today' : ''}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                {format(day, 'd')}
+              </Typography>
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: '2px', 
+                justifyContent: 'center' 
+              }}>
                 {habits.map((habit) => (
-                  <div key={habit.id} style={{ width: '10px', height: '10px', borderRadius: '50%', margin: '2px' }}
+                  <div
+                    key={habit.id}
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      margin: '1px'
+                    }}
                     className={getDayClass(day, habit)}
                   />
                 ))}
-              </Paper>
-            </Grid>
-          );
-        })}
+              </div>
+            </Paper>
+          </Grid>
+        ))}
       </Grid>
     </Paper>
   );

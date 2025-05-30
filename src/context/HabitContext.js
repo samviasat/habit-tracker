@@ -23,7 +23,6 @@ export const HabitProvider = ({ children }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState('month');
   const [selectedHabit, setSelectedHabit] = useState(null);
-  const [selectedHabit, setSelectedHabit] = useState(null);
 
   // Load habits from localStorage
   useEffect(() => {
@@ -127,17 +126,6 @@ export const HabitProvider = ({ children }) => {
     });
   };
 
-  // Context value object
-  const value = {
-    habits,
-    currentDate,
-    viewType,
-    setCurrentDate,
-    setViewType,
-    addHabit,
-    toggleHabitCompletion
-  };
-
   return (
     <HabitContext.Provider value={{
       habits,
@@ -147,7 +135,7 @@ export const HabitProvider = ({ children }) => {
       addHabit,
       updateHabit,
       deleteHabit,
-      toggleCompletion,
+      toggleCompletion: toggleHabitCompletion,
       setCurrentDate,
       setViewType,
       setSelectedHabit

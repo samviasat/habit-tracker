@@ -7,7 +7,7 @@ import { useHabits } from '../context/HabitContext';
 
 const CalendarView = ({ date, onDateChange }) => {
   const { habits, selectedHabit, toggleHabitCompletion, setSelectedHabit } = useHabits();
-  const [localCompletions, setLocalCompletions] = useState({});
+  const [pendingDays, setPendingDays] = useState(new Set());
   const month = format(date, 'MMMM yyyy');
   const monthStart = startOfMonth(date);
   const days = eachDayOfInterval({
@@ -17,7 +17,7 @@ const CalendarView = ({ date, onDateChange }) => {
 
   useEffect(() => {
     // Reset local completions when selected habit changes
-    setLocalCompletions({});
+    setPendingDays(new Set());
   }, [selectedHabit]);
 
   // Calculate empty cells for the start of the month
@@ -31,30 +31,35 @@ const CalendarView = ({ date, onDateChange }) => {
   const handleDayClick = (day) => {
     if (selectedHabit) {
       const dateKey = format(day, 'yyyy-MM-dd');
-      // Update local state immediately
-      setLocalCompletions(prev => ({
-        ...prev,
-        [dateKey]: !getCompletionStatus(day)
-      }));
-      // Update global state
+      // Toggle the visual state immediately
+      setPendingDays(prev => {
+        const newPending = new Set(prev);
+        if (newPending.has(dateKey)) {
+          newPending.delete(dateKey);
+        } else {
+          newPending.add(dateKey);
+        }
+        return newPending;
+      });
+      // Update the actual habit data
       toggleHabitCompletion(selectedHabit.id, day);
     }
   };
 
-  const getCompletionStatus = (day) => {
+  const isDayCompleted = (day) => {
     const dateKey = format(day, 'yyyy-MM-dd');
-    // Check local state first, then fall back to habit's completion status
-    return dateKey in localCompletions
-      ? localCompletions[dateKey]
-      : selectedHabit?.completions[dateKey] || false;
+    if (selectedHabit) {
+      // When a habit is selected, show completion based on pending state or actual completion
+      return pendingDays.has(dateKey) !== selectedHabit.completions[dateKey];
+    }
+    return false;
   };
 
   const renderDayContent = (day) => {
     const dateKey = format(day, 'yyyy-MM-dd');
-    const isToday = dateKey === format(new Date(), 'yyyy-MM-dd');
 
     if (!selectedHabit) {
-      // Show all completed habits when no habit is selected
+      // Show all completed habits in overview mode
       return habits.map((habit) => (
         habit.completions[dateKey] && (
           <Tooltip key={habit.id} title={habit.name} arrow>
@@ -81,8 +86,12 @@ const CalendarView = ({ date, onDateChange }) => {
       ));
     }
 
-    // Show completion status for selected habit
-    return getCompletionStatus(day) ? (
+    // Show selected habit's completion status with immediate feedback
+    const isCompleted = selectedHabit.completions[dateKey];
+    const isPending = pendingDays.has(dateKey);
+    const shouldShowCircle = isPending ? !isCompleted : isCompleted;
+
+    return shouldShowCircle ? (
       <Box
         sx={{
           width: { xs: '16px', sm: '20px' },

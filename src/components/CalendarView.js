@@ -48,7 +48,7 @@ const CalendarView = ({ date, onDateChange }) => {
         </div>
       </Grid>
 
-      <Grid container spacing={1}>
+      <Grid container spacing={2}>
         {/* Weekdays header */}
         {weekDays.map((day) => (
           <Grid item xs={12/7} key={day}>
@@ -57,7 +57,8 @@ const CalendarView = ({ date, onDateChange }) => {
               variant="subtitle2" 
               sx={{ 
                 fontWeight: 'bold',
-                pb: 1
+                pb: 2,
+                color: 'text.secondary'
               }}
             >
               {day}
@@ -72,8 +73,9 @@ const CalendarView = ({ date, onDateChange }) => {
               elevation={0}
               sx={{
                 height: '100px',
-                bgcolor: 'grey.100',
-                opacity: 0.5
+                bgcolor: 'grey.50',
+                opacity: 0.3,
+                borderRadius: 1
               }}
             />
           </Grid>
@@ -86,24 +88,29 @@ const CalendarView = ({ date, onDateChange }) => {
               elevation={1}
               sx={{
                 height: '100px',
-                p: 1,
+                p: 2,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
+                boxShadow: 1,
                 '&:hover': {
                   transform: 'scale(1.02)',
+                  boxShadow: 2,
                 },
                 '&.completed': {
-                  bgcolor: 'primary.light',
+                  bgcolor: 'success.main',
+                  opacity: 0.8
                 },
                 '&.missed': {
-                  bgcolor: 'error.light',
+                  bgcolor: 'error.main',
+                  opacity: 0.8
                 },
                 '&.today': {
                   border: '2px solid',
                   borderColor: 'primary.main',
+                  bgcolor: 'primary.50'
                 },
                 '&.future': {
                   bgcolor: 'background.paper',
@@ -111,23 +118,32 @@ const CalendarView = ({ date, onDateChange }) => {
               }}
               className={format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'today' : ''}
             >
-              <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 'medium', 
+                  mb: 1,
+                  color: format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'primary.main' : 'text.primary'
+                }}
+              >
                 {format(day, 'd')}
               </Typography>
               <div style={{ 
                 display: 'flex', 
                 flexWrap: 'wrap', 
-                gap: '2px', 
-                justifyContent: 'center' 
+                gap: '4px', 
+                justifyContent: 'center',
+                marginTop: 'auto'
               }}>
                 {habits.map((habit) => (
                   <div
                     key={habit.id}
                     style={{
-                      width: '8px',
-                      height: '8px',
+                      width: '10px',
+                      height: '10px',
                       borderRadius: '50%',
-                      margin: '1px'
+                      margin: '1px',
+                      border: '1px solid rgba(0,0,0,0.1)'
                     }}
                     className={getDayClass(day, habit)}
                   />

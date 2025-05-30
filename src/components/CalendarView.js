@@ -1,18 +1,24 @@
-import React from 'react';
-import { Grid, Paper, Typography, IconButton } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Grid, Paper, Typography, IconButton, Box, Tooltip } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths, addMonths } from 'date-fns';
 import { useHabits } from '../context/HabitContext';
 
 const CalendarView = ({ date, onDateChange }) => {
-  const { habits } = useHabits();
+  const { habits, selectedHabit, toggleHabitCompletion, setSelectedHabit } = useHabits();
+  const [localCompletions, setLocalCompletions] = useState({});
   const month = format(date, 'MMMM yyyy');
   const monthStart = startOfMonth(date);
   const days = eachDayOfInterval({
     start: monthStart,
     end: endOfMonth(date)
   });
+
+  useEffect(() => {
+    // Reset local completions when selected habit changes
+    setLocalCompletions({});
+  }, [selectedHabit]);
 
   // Calculate empty cells for the start of the month
   const startDayOfWeek = getDay(monthStart);
@@ -22,34 +28,126 @@ const CalendarView = ({ date, onDateChange }) => {
     onDateChange(newDate);
   };
 
-  const getDayClass = (day, habit) => {
-    const dateKey = format(day, 'yyyy-MM-dd');
-    const completion = habit.completions[dateKey];
-    const today = format(new Date(), 'yyyy-MM-dd') === dateKey;
+  const handleDayClick = (day) => {
+    if (selectedHabit) {
+      const dateKey = format(day, 'yyyy-MM-dd');
+      // Update local state immediately
+      setLocalCompletions(prev => ({
+        ...prev,
+        [dateKey]: !getCompletionStatus(day)
+      }));
+      // Update global state
+      toggleHabitCompletion(selectedHabit.id, day);
+    }
+  };
 
-    if (today) return 'today';
-    if (completion === undefined) return 'future';
-    return completion ? 'completed' : 'missed';
+  const getCompletionStatus = (day) => {
+    const dateKey = format(day, 'yyyy-MM-dd');
+    // Check local state first, then fall back to habit's completion status
+    return dateKey in localCompletions
+      ? localCompletions[dateKey]
+      : selectedHabit?.completions[dateKey] || false;
+  };
+
+  const renderDayContent = (day) => {
+    const dateKey = format(day, 'yyyy-MM-dd');
+    const isToday = dateKey === format(new Date(), 'yyyy-MM-dd');
+
+    if (!selectedHabit) {
+      // Show all completed habits when no habit is selected
+      return habits.map((habit) => (
+        habit.completions[dateKey] && (
+          <Tooltip key={habit.id} title={habit.name} arrow>
+            <Box
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedHabit(habit);
+              }}
+              sx={{
+                width: { xs: '8px', sm: '12px' },
+                height: { xs: '8px', sm: '12px' },
+                borderRadius: '50%',
+                bgcolor: habit.color,
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                '&:hover': {
+                  transform: { xs: 'scale(1.1)', sm: 'scale(1.2)' }
+                }
+              }}
+            />
+          </Tooltip>
+        )
+      ));
+    }
+
+    // Show completion status for selected habit
+    return getCompletionStatus(day) ? (
+      <Box
+        sx={{
+          width: { xs: '16px', sm: '20px' },
+          height: { xs: '16px', sm: '20px' },
+          borderRadius: '50%',
+          bgcolor: selectedHabit.color,
+          position: 'absolute',
+          bottom: { xs: '8px', sm: '12px' },
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          transform: 'scale(1)',
+          transition: 'transform 0.2s ease',
+        }}
+      />
+    ) : null;
   };
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Paper sx={{ 
+      p: { xs: 1, sm: 2 }, 
+      overflowX: 'hidden' 
+    }}>
+      <Box sx={{ mb: { xs: 1, sm: 2 }, px: { xs: 1, sm: 0 } }}>
+        <Typography 
+          variant="h6" 
+          gutterBottom 
+          sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+        >
+          {selectedHabit ? `Tracking: ${selectedHabit.name}` : 'Select a habit to track'}
+        </Typography>
+        {selectedHabit && (
+          <Typography 
+            variant="body2" 
+            color="text.secondary"
+            sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+          >
+            Click on days to toggle completion status
+          </Typography>
+        )}
+      </Box>
+
       <Grid container justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6">{month}</Typography>
+        <Typography variant="h6" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+          {month}
+        </Typography>
         <div>
-          <IconButton onClick={() => handleDateChange(subMonths(date, 1))}>
+          <IconButton 
+            onClick={() => handleDateChange(subMonths(date, 1))}
+            size="small"
+            sx={{ p: { xs: 0.5, sm: 1 } }}
+          >
             <ChevronLeftIcon />
           </IconButton>
-          <IconButton onClick={() => handleDateChange(addMonths(date, 1))}>
+          <IconButton 
+            onClick={() => handleDateChange(addMonths(date, 1))}
+            size="small"
+            sx={{ p: { xs: 0.5, sm: 1 } }}
+          >
             <ChevronRightIcon />
           </IconButton>
         </div>
       </Grid>
 
-      <Grid container spacing={2}>
-        {/* Weekdays header */}
+      <Grid container spacing={{ xs: 1, sm: 2 }}>
         {weekDays.map((day) => (
           <Grid item xs={12/7} key={day}>
             <Typography 
@@ -57,8 +155,9 @@ const CalendarView = ({ date, onDateChange }) => {
               variant="subtitle2" 
               sx={{ 
                 fontWeight: 'bold',
-                pb: 2,
-                color: 'text.secondary'
+                pb: { xs: 1, sm: 2 },
+                color: 'text.secondary',
+                fontSize: { xs: '0.7rem', sm: '0.875rem' }
               }}
             >
               {day}
@@ -66,13 +165,12 @@ const CalendarView = ({ date, onDateChange }) => {
           </Grid>
         ))}
 
-        {/* Empty cells for start of month */}
         {emptyDays.map((_, index) => (
           <Grid item xs={12/7} key={`empty-${index}`}>
             <Paper
               elevation={0}
               sx={{
-                height: '100px',
+                height: { xs: '60px', sm: '100px' },
                 bgcolor: 'grey.50',
                 opacity: 0.3,
                 borderRadius: 1
@@ -81,77 +179,67 @@ const CalendarView = ({ date, onDateChange }) => {
           </Grid>
         ))}
 
-        {/* Calendar days */}
-        {days.map((day) => (
-          <Grid item xs={12/7} key={format(day, 'yyyy-MM-dd')}>
-            <Paper
-              elevation={1}
-              sx={{
-                height: '100px',
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: 1,
-                '&:hover': {
-                  transform: 'scale(1.02)',
-                  boxShadow: 2,
-                },
-                '&.completed': {
-                  bgcolor: 'success.main',
-                  opacity: 0.8
-                },
-                '&.missed': {
-                  bgcolor: 'error.main',
-                  opacity: 0.8
-                },
-                '&.today': {
-                  border: '2px solid',
-                  borderColor: 'primary.main',
-                  bgcolor: 'primary.50'
-                },
-                '&.future': {
-                  bgcolor: 'background.paper',
-                }
-              }}
-              className={format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'today' : ''}
-            >
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 'medium', 
-                  mb: 1,
-                  color: format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'primary.main' : 'text.primary'
+        {days.map((day) => {
+          const dateKey = format(day, 'yyyy-MM-dd');
+          const isToday = dateKey === format(new Date(), 'yyyy-MM-dd');
+          
+          return (
+            <Grid item xs={12/7} key={dateKey}>
+              <Paper
+                elevation={1}
+                onClick={() => handleDayClick(day)}
+                sx={{
+                  height: { xs: '60px', sm: '100px' },
+                  p: { xs: 1, sm: 2 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  cursor: selectedHabit ? 'pointer' : 'default',
+                  transition: 'all 0.2s ease',
+                  boxShadow: 1,
+                  position: 'relative',
+                  '&:hover': selectedHabit ? {
+                    transform: { xs: 'none', sm: 'scale(1.02)' },
+                    boxShadow: 2,
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundColor: 'rgba(0,0,0,0.05)',
+                      borderRadius: 'inherit'
+                    }
+                  } : {},
+                  '&.today': {
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                  }
                 }}
+                className={isToday ? 'today' : ''}
               >
-                {format(day, 'd')}
-              </Typography>
-              <div style={{ 
-                display: 'flex', 
-                flexWrap: 'wrap', 
-                gap: '4px', 
-                justifyContent: 'center',
-                marginTop: 'auto'
-              }}>
-                {habits.map((habit) => (
-                  <div
-                    key={habit.id}
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      margin: '1px',
-                      border: '1px solid rgba(0,0,0,0.1)'
-                    }}
-                    className={getDayClass(day, habit)}
-                  />
-                ))}
-              </div>
-            </Paper>
-          </Grid>
-        ))}
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontWeight: 'medium',
+                    fontSize: { xs: '0.9rem', sm: '1.25rem' },
+                    color: isToday ? 'primary.main' : 'text.primary'
+                  }}
+                >
+                  {format(day, 'd')}
+                </Typography>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexWrap: 'wrap', 
+                  gap: { xs: '2px', sm: '4px' }, 
+                  justifyContent: 'center',
+                  position: 'absolute',
+                  bottom: { xs: '8px', sm: '12px' }
+                }}>
+                  {renderDayContent(day)}
+                </Box>
+              </Paper>
+            </Grid>
+          );
+        })}
       </Grid>
     </Paper>
   );

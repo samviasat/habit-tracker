@@ -47,29 +47,43 @@ const CalendarView = ({ date, onDateChange }) => {
     const dateKey = format(day, 'yyyy-MM-dd');
 
     if (!selectedHabit) {
-      return habits.map((habit) => (
-        habit.completions[dateKey] && (
-          <Tooltip key={habit.id} title={habit.name} arrow>
-            <Box
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedHabit(habit);
-              }}
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                bgcolor: habit.color,
-                cursor: 'pointer',
-                transition: 'transform 0.2s ease',
-                '&:hover': {
-                  transform: 'scale(1.2)'
-                }
-              }}
-            />
-          </Tooltip>
-        )
-      ));
+      return (
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 0.5, 
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          position: 'absolute',
+          bottom: '8px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          minHeight: '12px'
+        }}>
+          {habits.map((habit) => (
+            habit.completions[dateKey] && (
+              <Tooltip key={habit.id} title={habit.name} arrow>
+                <Box
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedHabit(habit);
+                  }}
+                  sx={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    bgcolor: habit.color,
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease',
+                    '&:hover': {
+                      transform: 'scale(1.2)'
+                    }
+                  }}
+                />
+              </Tooltip>
+            )
+          ))}
+        </Box>
+      );
     }
 
     const isCompleted = selectedHabit.completions[dateKey];
@@ -79,14 +93,14 @@ const CalendarView = ({ date, onDateChange }) => {
     return shouldShowCircle ? (
       <Box
         sx={{
-          width: 20,
-          height: 20,
+          width: 16,
+          height: 16,
           borderRadius: '50%',
           bgcolor: selectedHabit.color,
           position: 'absolute',
-          top: '50%',
+          bottom: '8px',
           left: '50%',
-          transform: 'translate(-50%, -50%)',
+          transform: 'translateX(-50%)',
           transition: 'transform 0.2s ease',
         }}
       />
@@ -146,6 +160,7 @@ const CalendarView = ({ date, onDateChange }) => {
             key={`empty-${index}`}
             sx={{
               aspectRatio: '1',
+              height: { xs: '60px', sm: '80px', md: '100px' },
               bgcolor: 'grey.100',
               borderRadius: 1
             }}
@@ -162,12 +177,10 @@ const CalendarView = ({ date, onDateChange }) => {
               onClick={() => handleDayClick(day)}
               sx={{
                 aspectRatio: '1',
+                height: { xs: '60px', sm: '80px', md: '100px' },
                 border: isToday ? 2 : 1,
                 borderColor: isToday ? 'primary.main' : 'grey.300',
                 borderRadius: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
                 position: 'relative',
                 cursor: selectedHabit ? 'pointer' : 'default',
                 '&:hover': selectedHabit ? {
@@ -178,24 +191,16 @@ const CalendarView = ({ date, onDateChange }) => {
             >
               <Typography 
                 sx={{ 
-                  pt: 1,
+                  position: 'absolute',
+                  top: '8px',
+                  left: '8px',
                   color: isToday ? 'primary.main' : 'text.primary',
                   fontWeight: isToday ? 'bold' : 'normal'
                 }}
               >
                 {format(day, 'd')}
               </Typography>
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 0.5, 
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                p: 0.5,
-                position: 'absolute',
-                bottom: 4
-              }}>
-                {renderDayContent(day)}
-              </Box>
+              {renderDayContent(day)}
             </Box>
           );
         })}

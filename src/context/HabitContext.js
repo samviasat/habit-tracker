@@ -8,6 +8,7 @@ export const HabitProvider = ({ children }) => {
   const [habits, setHabits] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState('month');
+  const [selectedHabit, setSelectedHabit] = useState(null);
 
   // Load habits from localStorage
   useEffect(() => {
@@ -21,32 +22,24 @@ export const HabitProvider = ({ children }) => {
           id: uuidv4(),
           name: 'Drink 8 glasses of water',
           description: 'Stay hydrated throughout the day',
-          goal: 1,
-          streak: { current: 0, longest: 0 },
           completions: {}
         },
         {
           id: uuidv4(),
           name: 'Exercise for 30 minutes',
           description: 'Daily workout session',
-          goal: 1,
-          streak: { current: 0, longest: 0 },
           completions: {}
         },
         {
           id: uuidv4(),
           name: 'Read for 20 minutes',
           description: 'Daily reading time',
-          goal: 1,
-          streak: { current: 0, longest: 0 },
           completions: {}
         },
         {
           id: uuidv4(),
           name: 'Meditate',
           description: 'Daily meditation practice',
-          goal: 1,
-          streak: { current: 0, longest: 0 },
           completions: {}
         }
       ];
@@ -75,9 +68,11 @@ export const HabitProvider = ({ children }) => {
   };
 
   const updateHabit = (id, updates) => {
-    setHabits(habits.map(habit =>
-      habit.id === id ? { ...habit, ...updates } : habit
-    ));
+    setHabits(prevHabits => 
+      prevHabits.map(habit =>
+        habit.id === id ? { ...habit, ...updates } : habit
+      )
+    );
   };
 
   const deleteHabit = (id) => {

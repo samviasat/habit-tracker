@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, Paper, Typography, IconButton, Box, Chip, Tooltip } from '@mui/material';
+import { Grid, Paper, Typography, IconButton, Box, Chip, Tooltip } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths, addMonths } from 'date-fns';
@@ -149,10 +149,6 @@ const CalendarView = ({ date, onDateChange }) => {
                 '&.today': {
                   border: '2px solid',
                   borderColor: 'primary.main',
-                  bgcolor: 'primary.50'
-                },
-                '&.future': {
-                  bgcolor: 'background.paper',
                 }
               }}
               className={selectedHabit ? getDayClass(day, selectedHabit) : 
@@ -161,8 +157,7 @@ const CalendarView = ({ date, onDateChange }) => {
               <Typography 
                 variant="h6" 
                 sx={{ 
-                  fontWeight: 'medium', 
-                  mb: 1,
+                  fontWeight: 'medium',
                   color: format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'primary.main' : 'text.primary'
                 }}
               >

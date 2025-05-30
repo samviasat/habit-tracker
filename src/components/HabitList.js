@@ -3,7 +3,6 @@ import { List, ListItem, ListItemText, IconButton, Chip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useHabits } from '../context/HabitContext';
-import { format } from 'date-fns';
 
 const HabitList = ({ onEditHabit }) => {
   const { habits, deleteHabit, toggleHabitCompletion } = useHabits();
@@ -37,18 +36,42 @@ const HabitList = ({ onEditHabit }) => {
             size="small"
             onClick={() => toggleHabitCompletion(habit.id, today)}
             sx={{
-              ml: 2,
-              bgcolor: habit.completions[today] ? 'primary.main' : 'grey.200',
+              cursor: 'pointer',
+              bgcolor: selectedHabit?.id === habit.id ? 'primary.light' : 'transparent',
               '&:hover': {
-                bgcolor: habit.completions[today] ? 'primary.dark' : 'grey.300',
-              }
+                bgcolor: selectedHabit?.id === habit.id ? 'primary.light' : 'action.hover',
+              },
+              borderRadius: 1,
             }}
+            secondaryAction={
+              <>
+                <IconButton edge="end" aria-label="edit" onClick={(e) => {
+                  e.stopPropagation();
+                  onEditHabit(habit);
+                }}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton 
+                  edge="end" 
+                  aria-label="delete" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteHabit(habit.id);
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </>
+            }
           >
-            {habit.completions[today] ? '✅' : '❌'}
-          </IconButton>
-        </ListItem>
-      ))}
-    </List>
+            <ListItemText
+              primary={habit.name}
+              secondary={habit.description}
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Paper>
   );
 };
 

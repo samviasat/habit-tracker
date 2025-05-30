@@ -6,7 +6,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths,
 import { useHabits } from '../context/HabitContext';
 
 const CalendarView = ({ date, onDateChange }) => {
-  const { habits, selectedHabit, toggleHabitCompletion, setSelectedHabit } = useHabits();
+  const { habits, selectedHabit, toggleCompletion, setSelectedHabit } = useHabits();
   const [pendingDays, setPendingDays] = useState(new Set());
   const month = format(date, 'MMMM yyyy');
   const monthStart = startOfMonth(date);
@@ -42,7 +42,7 @@ const CalendarView = ({ date, onDateChange }) => {
         return newPending;
       });
       // Update the actual habit data
-      toggleHabitCompletion(selectedHabit.id, day);
+      toggleCompletion(selectedHabit.id, format(day, 'yyyy-MM-dd'));
     }
   };
 

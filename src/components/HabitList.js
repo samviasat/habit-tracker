@@ -1,54 +1,57 @@
 import React from 'react';
-import { List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Chip } from '@mui/material';
+import { List, ListItem, ListItemText, IconButton, Paper, Typography } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useHabits } from '../context/HabitContext';
-import { format } from 'date-fns';
 
 const HabitList = ({ onEditHabit }) => {
-  const { habits, deleteHabit, toggleCompletion } = useHabits();
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const { habits, deleteHabit, selectedHabit, setSelectedHabit } = useHabits();
 
   return (
-    <List>
-      {habits.map((habit) => (
-        <ListItem
-          key={habit.id}
-          secondaryAction={
-            <>
-              <IconButton edge="end" aria-label="edit" onClick={() => onEditHabit(habit)}>
-                <EditIcon />
-              </IconButton>
-              <IconButton edge="end" aria-label="delete" onClick={() => deleteHabit(habit.id)}>
-                <DeleteIcon />
-              </IconButton>
-            </>
-          }
-        >
-          <ListItemText
-            primary={habit.name}
-            secondary={habit.description}
-          />
-          <Chip
-            label={`Streak: ${habit.streak.current} (${habit.streak.longest})`}
-            color={habit.streak.current > 0 ? 'primary' : 'default'}
-          />
-          <IconButton
-            size="small"
-            onClick={() => toggleCompletion(habit.id, today)}
+    <Paper sx={{ mb: 2, p: 2 }}>
+      <Typography variant="h6" gutterBottom>My Habits</Typography>
+      <List>
+        {habits.map((habit) => (
+          <ListItem
+            key={habit.id}
+            onClick={() => setSelectedHabit(habit)}
             sx={{
-              ml: 2,
-              bgcolor: habit.completions[today] ? 'primary.main' : 'grey.200',
+              cursor: 'pointer',
+              bgcolor: selectedHabit?.id === habit.id ? 'primary.light' : 'transparent',
               '&:hover': {
-                bgcolor: habit.completions[today] ? 'primary.dark' : 'grey.300',
-              }
+                bgcolor: selectedHabit?.id === habit.id ? 'primary.light' : 'action.hover',
+              },
+              borderRadius: 1,
             }}
+            secondaryAction={
+              <>
+                <IconButton edge="end" aria-label="edit" onClick={(e) => {
+                  e.stopPropagation();
+                  onEditHabit(habit);
+                }}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton 
+                  edge="end" 
+                  aria-label="delete" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteHabit(habit.id);
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </>
+            }
           >
-            {habit.completions[today] ? '✅' : '❌'}
-          </IconButton>
-        </ListItem>
-      ))}
-    </List>
+            <ListItemText
+              primary={habit.name}
+              secondary={habit.description}
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Paper>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, Paper, Typography, IconButton, Box, Chip } from '@mui/material';
+import { Grid, Paper, Typography, IconButton, Box, Chip, Tooltip } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths, addMonths } from 'date-fns';
@@ -45,7 +45,7 @@ const CalendarView = ({ date, onDateChange }) => {
     <Paper sx={{ p: 2 }}>
       <Box mb={2}>
         <Typography variant="h6" gutterBottom>Select Habit to Track:</Typography>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
           {habits.map(habit => (
             <Chip
               key={habit.id}
@@ -56,6 +56,11 @@ const CalendarView = ({ date, onDateChange }) => {
             />
           ))}
         </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          {selectedHabit 
+            ? "Click on any day to toggle completion status" 
+            : "Select a habit above to track its completion, or click a dot below to select a habit"}
+        </Typography>
       </Box>
 
       <Grid container justifyContent="space-between" alignItems="center" mb={2}>
@@ -118,9 +123,20 @@ const CalendarView = ({ date, onDateChange }) => {
                 cursor: selectedHabit ? 'pointer' : 'default',
                 transition: 'all 0.2s ease',
                 boxShadow: 1,
+                position: 'relative',
                 '&:hover': selectedHabit ? {
                   transform: 'scale(1.02)',
                   boxShadow: 2,
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.05)',
+                    borderRadius: 'inherit'
+                  }
                 } : {},
                 '&.completed': {
                   bgcolor: 'success.main',
@@ -161,17 +177,23 @@ const CalendarView = ({ date, onDateChange }) => {
                   marginTop: 'auto'
                 }}>
                   {habits.map((habit) => (
-                    <div
-                      key={habit.id}
-                      style={{
-                        width: '10px',
-                        height: '10px',
-                        borderRadius: '50%',
-                        margin: '1px',
-                        border: '1px solid rgba(0,0,0,0.1)'
-                      }}
-                      className={getDayClass(day, habit)}
-                    />
+                    <Tooltip key={habit.id} title={habit.name} arrow>
+                      <div
+                        style={{
+                          width: '10px',
+                          height: '10px',
+                          borderRadius: '50%',
+                          margin: '1px',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          cursor: 'pointer'
+                        }}
+                        className={getDayClass(day, habit)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedHabit(habit);
+                        }}
+                      />
+                    </Tooltip>
                   ))}
                 </div>
               )}

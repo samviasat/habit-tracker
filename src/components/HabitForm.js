@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
 import { useHabits } from '../context/HabitContext';
 
 const HabitForm = ({ open, onClose, habit = null }) => {
   const { addHabit, updateHabit } = useHabits();
   const [formData, setFormData] = useState({
     name: habit?.name || '',
-    description: habit?.description || '',
-    goal: habit?.goal || 1
+    description: habit?.description || ''
   });
 
   const handleSubmit = (e) => {
@@ -15,7 +14,7 @@ const HabitForm = ({ open, onClose, habit = null }) => {
     if (habit) {
       updateHabit(habit.id, formData);
     } else {
-      addHabit(formData.name, formData.description, formData.goal);
+      addHabit(formData);
     }
     onClose();
   };
@@ -53,20 +52,6 @@ const HabitForm = ({ open, onClose, habit = null }) => {
             value={formData.description}
             onChange={handleChange}
           />
-          <FormControl margin="dense" fullWidth>
-            <InputLabel>Goal (times per day)</InputLabel>
-            <Select
-              name="goal"
-              value={formData.goal}
-              onChange={handleChange}
-            >
-              {[1, 2, 3, 4, 5].map((num) => (
-                <MenuItem key={num} value={num}>
-                  {num} time{num > 1 ? 's' : ''} per day
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>

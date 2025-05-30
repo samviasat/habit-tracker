@@ -1,12 +1,12 @@
 import React from 'react';
-import { List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Chip } from '@mui/material';
+import { List, ListItem, ListItemText, IconButton, Chip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useHabits } from '../context/HabitContext';
 import { format } from 'date-fns';
 
 const HabitList = ({ onEditHabit }) => {
-  const { habits, deleteHabit, toggleCompletion } = useHabits();
+  const { habits, deleteHabit, toggleHabitCompletion } = useHabits();
   const today = format(new Date(), 'yyyy-MM-dd');
 
   return (
@@ -35,7 +35,7 @@ const HabitList = ({ onEditHabit }) => {
           />
           <IconButton
             size="small"
-            onClick={() => toggleCompletion(habit.id, today)}
+            onClick={() => toggleHabitCompletion(habit.id, today)}
             sx={{
               ml: 2,
               bgcolor: habit.completions[today] ? 'primary.main' : 'grey.200',

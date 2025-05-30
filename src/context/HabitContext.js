@@ -57,9 +57,14 @@ export const HabitProvider = ({ children }) => {
     const newHabit = {
       id: uuidv4(),
       ...habitData,
+      streak: { current: 0, longest: 0 },
       completions: {}
     };
-    setHabits(prevHabits => [...prevHabits, newHabit]);
+    setHabits(prevHabits => {
+      const updatedHabits = [...prevHabits, newHabit];
+      localStorage.setItem('habits', JSON.stringify(updatedHabits));
+      return updatedHabits;
+    });
   };
 
   const updateHabit = (id, updates) => {
@@ -71,10 +76,7 @@ export const HabitProvider = ({ children }) => {
   };
 
   const deleteHabit = (id) => {
-    setHabits(prevHabits => prevHabits.filter(habit => habit.id !== id));
-    if (selectedHabit?.id === id) {
-      setSelectedHabit(null);
-    }
+    setHabits(habits.filter(habit => habit.id !== id));
   };
 
   const toggleHabitCompletion = (habitId, date) => {
@@ -92,21 +94,19 @@ export const HabitProvider = ({ children }) => {
         }
         return habit;
       });
+      localStorage.setItem('habits', JSON.stringify(updatedHabits));
       return updatedHabits;
     });
   };
 
+  // Context value object
   const value = {
     habits,
     currentDate,
     viewType,
-    selectedHabit,
-    setSelectedHabit,
     setCurrentDate,
     setViewType,
     addHabit,
-    updateHabit,
-    deleteHabit,
     toggleHabitCompletion
   };
 

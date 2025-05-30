@@ -1,12 +1,13 @@
-import React from 'react';
-import { Grid, Paper, Typography, IconButton, Box } from '@mui/material';
+import React, { useState } from 'react';
+import { Grid, Paper, Typography, IconButton, Box, Chip, Tooltip } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths, addMonths } from 'date-fns';
 import { useHabits } from '../context/HabitContext';
 
 const CalendarView = ({ date, onDateChange }) => {
-  const { habits, selectedHabit, toggleHabitCompletion } = useHabits();
+  const { habits, toggleHabitCompletion } = useHabits();
+  const [selectedHabit, setSelectedHabit] = useState(null);
   const month = format(date, 'MMMM yyyy');
   const monthStart = startOfMonth(date);
   const days = eachDayOfInterval({
@@ -42,15 +43,24 @@ const CalendarView = ({ date, onDateChange }) => {
 
   return (
     <Paper sx={{ p: 2 }}>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          {selectedHabit ? `Tracking: ${selectedHabit.name}` : 'Select a habit to track'}
+      <Box mb={2}>
+        <Typography variant="h6" gutterBottom>Select Habit to Track:</Typography>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+          {habits.map(habit => (
+            <Chip
+              key={habit.id}
+              label={habit.name}
+              onClick={() => setSelectedHabit(habit)}
+              color={selectedHabit?.id === habit.id ? "primary" : "default"}
+              variant={selectedHabit?.id === habit.id ? "filled" : "outlined"}
+            />
+          ))}
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          {selectedHabit 
+            ? "Click on any day to toggle completion status" 
+            : "Select a habit above to track its completion, or click a dot below to select a habit"}
         </Typography>
-        {selectedHabit && (
-          <Typography variant="body2" color="text.secondary">
-            Click on days to toggle completion status
-          </Typography>
-        )}
       </Box>
 
       <Grid container justifyContent="space-between" alignItems="center" mb={2}>
@@ -113,23 +123,36 @@ const CalendarView = ({ date, onDateChange }) => {
                 cursor: selectedHabit ? 'pointer' : 'default',
                 transition: 'all 0.2s ease',
                 boxShadow: 1,
+                position: 'relative',
                 '&:hover': selectedHabit ? {
                   transform: 'scale(1.02)',
                   boxShadow: 2,
-                  bgcolor: 'action.hover'
-                } : {},
-                ...(selectedHabit && selectedHabit.completions[format(day, 'yyyy-MM-dd')] && {
-                  bgcolor: 'success.light',
-                  '&:hover': {
-                    bgcolor: 'success.main',
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.05)',
+                    borderRadius: 'inherit'
                   }
-                }),
+                } : {},
+                '&.completed': {
+                  bgcolor: 'success.main',
+                  opacity: 0.8
+                },
+                '&.missed': {
+                  bgcolor: 'error.main',
+                  opacity: 0.8
+                },
                 '&.today': {
                   border: '2px solid',
                   borderColor: 'primary.main',
                 }
               }}
-              className={format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'today' : ''}
+              className={selectedHabit ? getDayClass(day, selectedHabit) : 
+                        format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'today' : ''}
             >
               <Typography 
                 variant="h6" 
@@ -140,30 +163,34 @@ const CalendarView = ({ date, onDateChange }) => {
               >
                 {format(day, 'd')}
               </Typography>
-              
               {!selectedHabit && (
-                <Box sx={{ 
+                <div style={{ 
                   display: 'flex', 
                   flexWrap: 'wrap', 
                   gap: '4px', 
                   justifyContent: 'center',
-                  mt: 'auto' 
+                  marginTop: 'auto'
                 }}>
                   {habits.map((habit) => (
-                    habit.completions[format(day, 'yyyy-MM-dd')] && (
-                      <Box
-                        key={habit.id}
-                        sx={{
-                          width: '8px',
-                          height: '8px',
+                    <Tooltip key={habit.id} title={habit.name} arrow>
+                      <div
+                        style={{
+                          width: '10px',
+                          height: '10px',
                           borderRadius: '50%',
-                          bgcolor: 'success.main',
-                          opacity: 0.8
+                          margin: '1px',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          cursor: 'pointer'
+                        }}
+                        className={getDayClass(day, habit)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedHabit(habit);
                         }}
                       />
-                    )
+                    </Tooltip>
                   ))}
-                </Box>
+                </div>
               )}
             </Paper>
           </Grid>

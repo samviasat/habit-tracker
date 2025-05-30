@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Grid, Paper, Typography, IconButton, Box, Tooltip } from '@mui/material';
+import React, { useState } from 'react';
+import { Paper, Typography, IconButton, Box, Tooltip } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths, addMonths } from 'date-fns';
@@ -15,23 +15,21 @@ const CalendarView = ({ date, onDateChange }) => {
     end: endOfMonth(date)
   });
 
-  useEffect(() => {
-    // Reset local completions when selected habit changes
-    setPendingDays(new Set());
-  }, [selectedHabit]);
-
   // Calculate empty cells for the start of the month
   const startDayOfWeek = getDay(monthStart);
   const emptyDays = Array(startDayOfWeek).fill(null);
 
-  const handleDateChange = (newDate) => {
-    onDateChange(newDate);
+  const handlePrevMonth = () => {
+    onDateChange(subMonths(date, 1));
+  };
+
+  const handleNextMonth = () => {
+    onDateChange(addMonths(date, 1));
   };
 
   const handleDayClick = (day) => {
     if (selectedHabit) {
       const dateKey = format(day, 'yyyy-MM-dd');
-      // Toggle the visual state immediately
       setPendingDays(prev => {
         const newPending = new Set(prev);
         if (newPending.has(dateKey)) {
@@ -41,25 +39,14 @@ const CalendarView = ({ date, onDateChange }) => {
         }
         return newPending;
       });
-      // Update the actual habit data
-      toggleCompletion(selectedHabit.id, format(day, 'yyyy-MM-dd'));
+      toggleCompletion(selectedHabit.id, dateKey);
     }
-  };
-
-  const isDayCompleted = (day) => {
-    const dateKey = format(day, 'yyyy-MM-dd');
-    if (selectedHabit) {
-      // When a habit is selected, show completion based on pending state or actual completion
-      return pendingDays.has(dateKey) !== selectedHabit.completions[dateKey];
-    }
-    return false;
   };
 
   const renderDayContent = (day) => {
     const dateKey = format(day, 'yyyy-MM-dd');
 
     if (!selectedHabit) {
-      // Show all completed habits in overview mode
       return habits.map((habit) => (
         habit.completions[dateKey] && (
           <Tooltip key={habit.id} title={habit.name} arrow>
@@ -69,15 +56,14 @@ const CalendarView = ({ date, onDateChange }) => {
                 setSelectedHabit(habit);
               }}
               sx={{
-                width: { xs: '8px', sm: '12px' },
-                height: { xs: '8px', sm: '12px' },
+                width: 8,
+                height: 8,
                 borderRadius: '50%',
                 bgcolor: habit.color,
                 cursor: 'pointer',
                 transition: 'transform 0.2s ease',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 '&:hover': {
-                  transform: { xs: 'scale(1.1)', sm: 'scale(1.2)' }
+                  transform: 'scale(1.2)'
                 }
               }}
             />
@@ -86,7 +72,6 @@ const CalendarView = ({ date, onDateChange }) => {
       ));
     }
 
-    // Show selected habit's completion status with immediate feedback
     const isCompleted = selectedHabit.completions[dateKey];
     const isPending = pendingDays.has(dateKey);
     const shouldShowCircle = isPending ? !isCompleted : isCompleted;
@@ -94,14 +79,14 @@ const CalendarView = ({ date, onDateChange }) => {
     return shouldShowCircle ? (
       <Box
         sx={{
-          width: { xs: '16px', sm: '20px' },
-          height: { xs: '16px', sm: '20px' },
+          width: 20,
+          height: 20,
           borderRadius: '50%',
           bgcolor: selectedHabit.color,
           position: 'absolute',
-          bottom: { xs: '8px', sm: '12px' },
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          transform: 'scale(1)',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           transition: 'transform 0.2s ease',
         }}
       />
@@ -111,81 +96,60 @@ const CalendarView = ({ date, onDateChange }) => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <Paper sx={{ 
-      p: { xs: 1, sm: 2 }, 
-      overflowX: 'hidden' 
-    }}>
-      <Box sx={{ mb: { xs: 1, sm: 2 }, px: { xs: 1, sm: 0 } }}>
-        <Typography 
-          variant="h6" 
-          gutterBottom 
-          sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
-        >
-          {selectedHabit ? `Tracking: ${selectedHabit.name}` : 'Select a habit to track'}
+    <Paper sx={{ p: 3 }}>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          {selectedHabit ? `Tracking: ${selectedHabit.name}` : 'Habit Overview'}
         </Typography>
-        {selectedHabit && (
-          <Typography 
-            variant="body2" 
-            color="text.secondary"
-            sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
-          >
-            Click on days to toggle completion status
-          </Typography>
-        )}
       </Box>
 
-      <Grid container justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
-          {month}
-        </Typography>
-        <div>
-          <IconButton 
-            onClick={() => handleDateChange(subMonths(date, 1))}
-            size="small"
-            sx={{ p: { xs: 0.5, sm: 1 } }}
-          >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h5">{month}</Typography>
+        <Box>
+          <IconButton onClick={handlePrevMonth} size="small">
             <ChevronLeftIcon />
           </IconButton>
-          <IconButton 
-            onClick={() => handleDateChange(addMonths(date, 1))}
-            size="small"
-            sx={{ p: { xs: 0.5, sm: 1 } }}
-          >
+          <IconButton onClick={handleNextMonth} size="small">
             <ChevronRightIcon />
           </IconButton>
-        </div>
-      </Grid>
+        </Box>
+      </Box>
 
-      <Grid container spacing={{ xs: 1, sm: 2 }}>
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        gap: 1,
+        mb: 2 
+      }}>
         {weekDays.map((day) => (
-          <Grid item xs={12/7} key={day}>
-            <Typography 
-              align="center" 
-              variant="subtitle2" 
-              sx={{ 
-                fontWeight: 'bold',
-                pb: { xs: 1, sm: 2 },
-                color: 'text.secondary',
-                fontSize: { xs: '0.7rem', sm: '0.875rem' }
-              }}
-            >
-              {day}
-            </Typography>
-          </Grid>
+          <Box 
+            key={day} 
+            sx={{ 
+              textAlign: 'center',
+              fontWeight: 'bold',
+              color: 'text.secondary',
+              pb: 1
+            }}
+          >
+            {day}
+          </Box>
         ))}
+      </Box>
 
+      <Box sx={{ 
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        gap: 1
+      }}>
         {emptyDays.map((_, index) => (
-          <Grid item xs={12/7} key={`empty-${index}`}>
-            <Paper
-              elevation={0}
-              sx={{
-                height: { xs: '60px', sm: '100px' },
-                bgcolor: 'grey.50',
-                opacity: 0.3,
-                borderRadius: 1
-              }}
-            />
-          </Grid>
+          <Box
+            key={`empty-${index}`}
+            sx={{
+              aspectRatio: '1',
+              bgcolor: 'grey.100',
+              borderRadius: 1
+            }}
+          />
         ))}
 
         {days.map((day) => {
@@ -193,63 +157,49 @@ const CalendarView = ({ date, onDateChange }) => {
           const isToday = dateKey === format(new Date(), 'yyyy-MM-dd');
           
           return (
-            <Grid item xs={12/7} key={dateKey}>
-              <Paper
-                elevation={1}
-                onClick={() => handleDayClick(day)}
-                sx={{
-                  height: { xs: '60px', sm: '100px' },
-                  p: { xs: 1, sm: 2 },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  cursor: selectedHabit ? 'pointer' : 'default',
-                  transition: 'all 0.2s ease',
-                  boxShadow: 1,
-                  position: 'relative',
-                  '&:hover': selectedHabit ? {
-                    transform: { xs: 'none', sm: 'scale(1.02)' },
-                    boxShadow: 2,
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      inset: 0,
-                      backgroundColor: 'rgba(0,0,0,0.05)',
-                      borderRadius: 'inherit'
-                    }
-                  } : {},
-                  '&.today': {
-                    border: '2px solid',
-                    borderColor: 'primary.main',
-                  }
+            <Box
+              key={dateKey}
+              onClick={() => handleDayClick(day)}
+              sx={{
+                aspectRatio: '1',
+                border: isToday ? 2 : 1,
+                borderColor: isToday ? 'primary.main' : 'grey.300',
+                borderRadius: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                position: 'relative',
+                cursor: selectedHabit ? 'pointer' : 'default',
+                '&:hover': selectedHabit ? {
+                  bgcolor: 'action.hover',
+                } : {},
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <Typography 
+                sx={{ 
+                  pt: 1,
+                  color: isToday ? 'primary.main' : 'text.primary',
+                  fontWeight: isToday ? 'bold' : 'normal'
                 }}
-                className={isToday ? 'today' : ''}
               >
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    fontWeight: 'medium',
-                    fontSize: { xs: '0.9rem', sm: '1.25rem' },
-                    color: isToday ? 'primary.main' : 'text.primary'
-                  }}
-                >
-                  {format(day, 'd')}
-                </Typography>
-                <Box sx={{ 
-                  display: 'flex', 
-                  flexWrap: 'wrap', 
-                  gap: { xs: '2px', sm: '4px' }, 
-                  justifyContent: 'center',
-                  position: 'absolute',
-                  bottom: { xs: '8px', sm: '12px' }
-                }}>
-                  {renderDayContent(day)}
-                </Box>
-              </Paper>
-            </Grid>
+                {format(day, 'd')}
+              </Typography>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 0.5, 
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                p: 0.5,
+                position: 'absolute',
+                bottom: 4
+              }}>
+                {renderDayContent(day)}
+              </Box>
+            </Box>
           );
         })}
-      </Grid>
+      </Box>
     </Paper>
   );
 };

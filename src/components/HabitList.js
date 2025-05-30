@@ -3,7 +3,6 @@ import { List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Chip
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useHabits } from '../context/HabitContext';
-import { format } from 'date-fns';
 
 const HabitList = ({ onEditHabit }) => {
   const { habits, deleteHabit, toggleCompletion, selectedHabit, setSelectedHabit } = useHabits();

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { format } from 'date-fns';
 
 const HabitContext = createContext(null);
 
@@ -21,6 +22,7 @@ export const HabitProvider = ({ children }) => {
   const [habits, setHabits] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState('month');
+  const [selectedHabit, setSelectedHabit] = useState(null);
   const [selectedHabit, setSelectedHabit] = useState(null);
 
   // Load habits from localStorage
@@ -78,62 +80,62 @@ export const HabitProvider = ({ children }) => {
     localStorage.setItem('habits', JSON.stringify(habits));
   }, [habits]);
 
-  const addHabit = (name, description, goal) => {
+  const addHabit = (habitData) => {
     const newHabit = {
       id: uuidv4(),
-      name,
-      description,
-      goal,
+      ...habitData,
       streak: { current: 0, longest: 0 },
       completions: {},
       color: HABIT_COLORS[habits.length % HABIT_COLORS.length]
     };
-    setHabits([...habits, newHabit]);
+    setHabits(prevHabits => {
+      const updatedHabits = [...prevHabits, newHabit];
+      localStorage.setItem('habits', JSON.stringify(updatedHabits));
+      return updatedHabits;
+    });
   };
 
   const updateHabit = (id, updates) => {
-    setHabits(habits.map(habit =>
-      habit.id === id ? { ...habit, ...updates } : habit
-    ));
+    setHabits(prevHabits => 
+      prevHabits.map(habit =>
+        habit.id === id ? { ...habit, ...updates } : habit
+      )
+    );
   };
 
   const deleteHabit = (id) => {
     setHabits(habits.filter(habit => habit.id !== id));
   };
 
-  const toggleCompletion = (habitId, date) => {
-    setHabits(habits.map(habit => {
-      if (habit.id === habitId) {
-        const completions = { ...habit.completions };
-        completions[date] = !completions[date];
-        return {
-          ...habit,
-          completions,
-          streak: calculateStreak(completions)
-        };
-      }
-      return habit;
-    }));
+  const toggleHabitCompletion = (habitId, date) => {
+    setHabits(prevHabits => {
+      const updatedHabits = prevHabits.map(habit => {
+        if (habit.id === habitId) {
+          const dateKey = format(date, 'yyyy-MM-dd');
+          const updatedCompletions = { ...habit.completions };
+          updatedCompletions[dateKey] = !updatedCompletions[dateKey];
+          
+          return {
+            ...habit,
+            completions: updatedCompletions
+          };
+        }
+        return habit;
+      });
+      localStorage.setItem('habits', JSON.stringify(updatedHabits));
+      return updatedHabits;
+    });
   };
 
-  const calculateStreak = (completions) => {
-    const dates = Object.keys(completions).sort((a, b) => new Date(b) - new Date(a));
-    let currentStreak = 0;
-    let longestStreak = 0;
-    let consecutive = true;
-
-    for (let i = 0; i < dates.length; i++) {
-      if (completions[dates[i]]) {
-        if (consecutive) {
-          currentStreak++;
-          longestStreak = Math.max(longestStreak, currentStreak);
-        }
-      } else {
-        consecutive = false;
-      }
-    }
-
-    return { current: currentStreak, longest: longestStreak };
+  // Context value object
+  const value = {
+    habits,
+    currentDate,
+    viewType,
+    setCurrentDate,
+    setViewType,
+    addHabit,
+    toggleHabitCompletion
   };
 
   return (

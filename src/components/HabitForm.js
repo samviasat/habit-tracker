@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useHabits } from '../context/HabitContext';
 
 const HABIT_COLORS = [
@@ -20,8 +20,7 @@ const HabitForm = ({ open, onClose, habit = null }) => {
   const [formData, setFormData] = useState({
     name: habit?.name || '',
     description: habit?.description || '',
-    goal: habit?.goal || 1,
-    color: habit?.color || HABIT_COLORS[0]
+    goal: habit?.goal || 1
   });
 
   const handleSubmit = (e) => {
@@ -29,7 +28,7 @@ const HabitForm = ({ open, onClose, habit = null }) => {
     if (habit) {
       updateHabit(habit.id, formData);
     } else {
-      addHabit(formData.name, formData.description, formData.goal, formData.color);
+      addHabit(formData.name, formData.description, formData.goal);
     }
     onClose();
   };
@@ -71,42 +70,16 @@ const HabitForm = ({ open, onClose, habit = null }) => {
             multiline
             rows={2}
           />
-          <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
+          <FormControl margin="dense" fullWidth>
             <InputLabel>Goal (times per day)</InputLabel>
             <Select
               name="goal"
               value={formData.goal}
               onChange={handleChange}
-              label="Goal (times per day)"
             >
               {[1, 2, 3, 4, 5].map((num) => (
                 <MenuItem key={num} value={num}>
                   {num} time{num > 1 ? 's' : ''} per day
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Color</InputLabel>
-            <Select
-              name="color"
-              value={formData.color}
-              onChange={handleChange}
-              label="Color"
-            >
-              {HABIT_COLORS.map((color) => (
-                <MenuItem key={color} value={color}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        bgcolor: color
-                      }}
-                    />
-                    {color}
-                  </Box>
                 </MenuItem>
               ))}
             </Select>
